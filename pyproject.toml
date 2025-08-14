@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mic-vis"
+version = "0.1.0"
+description = "A package for microbeam visualization and analysis"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Grace Luo", email = "yluo89@anl.gov"}
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "pandas",
+    "h5py",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+]
+
+[tool.setuptools.package-dir]
+"" = "mic_vis"
