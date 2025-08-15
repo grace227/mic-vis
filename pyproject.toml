@@ -28,5 +28,5 @@ dev = [
     "mypy",
 ]
 
-[tool.setuptools.package-dir]
-"" = "mic_vis"
+[tool.setuptools.packages]
+find = {}

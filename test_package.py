@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 Simple test script to verify the mic-vis package structure.
 Run this after installing the package with: pip install -e .
