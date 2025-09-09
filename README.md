@@ -6,7 +6,7 @@ A Python package for microbeam visualization and analysis, specifically designed
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone git@github.com:grace227/mic-vis.git
 cd mic-vis
 
 # Install in development mode
