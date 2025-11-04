@@ -1,4 +1,5 @@
 import h5py
+import os
 
 def load_h5_file(file_path: str, fit_type: str = 'ROI'):
     """
@@ -79,3 +80,5 @@ def load_h5_file_non_v9(file_path: str, fit_type: str = 'ROI'):
             data_dict[l] = locals()[l]
 
     return data_dict
+
+
