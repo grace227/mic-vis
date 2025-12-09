@@ -23,9 +23,10 @@ def load_bluesky_nexus(bluesky_dir: str, export_csv: bool = False) -> pd.DataFra
                     meta_dict['start_time'].append(f['entry/start_time'][()].decode('utf-8'))
                     meta_dict['plan_name'] = f['entry/plan_name'][()].decode('utf-8')
                     m = f['entry/instrument/bluesky/metadata/plan_args'][()].decode('utf-8')
-                    m_dict = yaml.safe_load(m)
-                    for k, v in m_dict.items():
-                        meta_dict[k].append(v)
+                    meta_dict['plan_args'].append(m)
+                    # m_dict = yaml.safe_load(m)
+                    # for k, v in m_dict.items():
+                    #     meta_dict[k].append(v)
             except Exception as e:
                 print(f"Error loading bluesky nexus file {fn}: {e}")
                 continue

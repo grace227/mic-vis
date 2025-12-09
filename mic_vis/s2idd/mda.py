@@ -4,7 +4,8 @@ import numpy as np
 def get_roi_from_mda(
     mda_path: str, 
     roi_num: int = 16, 
-    return_position: bool = True
+    return_position: bool = True,
+    verbose: int = 0
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Get the ROI from the MDA file. This has been tested on the 1D line mda file
@@ -26,9 +27,10 @@ def get_roi_from_mda(
     roi_data = None
     position_data = None
     try:
-        mda_data = readMDA(mda_path, verbose=0)
+        mda_data = readMDA(mda_path, verbose=verbose)
         for d in mda_data[1].d:
             if f'R{roi_num}' in d.name:
+                print(f"Found ROI {roi_num} in {d.name}")
                 roi_data = np.array(d.data)
                 break
         if return_position:
