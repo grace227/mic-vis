@@ -121,3 +121,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Login / session logs (local, do not track)
+.loglogin
