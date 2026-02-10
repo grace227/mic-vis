@@ -4,7 +4,7 @@ import pandas as pd
 import collections
 import yaml
 
-def load_bluesky_nexus(bluesky_dir: str, export_csv: bool = False) -> pd.DataFrame:
+def load_bluesky_nexus_2idd(bluesky_dir: str, export_csv: bool = False) -> pd.DataFrame:
     """
     Load the bluesky nexus file and return a pandas dataframe.
     """
@@ -24,7 +24,9 @@ def load_bluesky_nexus(bluesky_dir: str, export_csv: bool = False) -> pd.DataFra
                     meta_dict['plan_name'] = f['entry/plan_name'][()].decode('utf-8')
                     m = f['entry/instrument/bluesky/metadata/plan_args'][()].decode('utf-8')
                     meta_dict['plan_args'].append(m)
-                    # m_dict = yaml.safe_load(m)
+                    m_dict = yaml.safe_load(m)
+                    meta_dict['samplename'].append(m_dict['samplename'])
+                    meta_dict['user_comments'].append(m_dict['user_comments'])
                     # for k, v in m_dict.items():
                     #     meta_dict[k].append(v)
             except Exception as e:
