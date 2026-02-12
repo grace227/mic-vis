@@ -92,11 +92,23 @@ def add_scale_bar(ax, scale_length_um, pixel_size_um,
     return ax
 
 
+def _nice_scale_length(target):
+    if target <= 0:
+        return 1.0
+    exp = np.floor(np.log10(target))
+    base = 10 ** exp
+    for m in (1, 2, 5, 10):
+        val = m * base
+        if target <= val:
+            return float(val)
+    return float(10 * base)
+
+
 def plot_xrf_maps(ch_data: np.ndarray, ch_names: list, x_val: np.ndarray, y_val: np.ndarray, elms: list, 
                   ncol: int = 4, nrow: int = None, 
                   figsize: tuple = (10, 10), vmax_th: float = 100, cmap: str = 'inferno', 
                   show_colorbar: bool = True, 
-                  add_scalebar: bool = True, show_ticks: bool = True):
+                  add_scalebar: bool = True, show_ticks: bool = True, scale_length_um: int = None):
     
     """
     Plot XRF maps.
@@ -125,22 +137,57 @@ def plot_xrf_maps(ch_data: np.ndarray, ch_names: list, x_val: np.ndarray, y_val:
         
         if show_colorbar:
             addColorBar(fig, img, ax_)
-            
-        #TODO: add scalebar
-        # if add_scalebar:
 
+        if add_scalebar:
+            x_val_arr = np.asarray(x_val)
+            dx = np.median(np.diff(x_val_arr))
+            pixel_size_um = float(abs(dx)) if dx != 0 else 1.0
+            total_um = float(np.max(x_val_arr) - np.min(x_val_arr))
+            target = total_um / 5.0 if total_um > 0 else pixel_size_um * 10.0
+            if scale_length_um is None:
+                scale_length_um = _nice_scale_length(target)
+            add_scale_bar(ax_, scale_length_um, pixel_size_um, position='bottom-left')
+
+    
     for i, ax in enumerate(axs.flat):
-        
-        if i % ncol == 0:
-            # print(f"first column; {i}")
-            ax.set_ylabel(r"Y $\mu$m")
-        if i >= (nrow*ncol-nrow-1): 
-            # print(f"last row; {i}")
+        if show_ticks:
             ax.set_xlabel(r"X $\mu$m")
+            if i % ncol == 0:
+                # print(f"first column; {i}")
+                ax.set_ylabel(r"Y $\mu$m")
+        else:
+            ax.set_xticks([])
+            ax.set_yticks([])
+        
+        
+    if len(ax.get_images()) == 0:
+        print(f"subplot {i} is empty and deleted")
+        fig.delaxes(ax)
+
+    plt.tight_layout()
             
-        if len(ax.get_images()) == 0:
-            print(f"subplot {i} is empty and deleted")
-            fig.delaxes(ax)
-            
+    return fig
+
+def plot_xrf_spectrum(int_spec: np.ndarray, energy: np.ndarray, figsize: tuple = (10, 10), 
+                      show_ticks: bool = True, title: str = None, ax=None, fig=None):
+    """
+    Plot XRF spectrum.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    
+    ax.plot(energy, int_spec)
+    ax.set_xlabel("Energy (keV)")
+    ax.set_ylabel("Intensity (a.u.)")
+    ax.set_yscale("log")
+    if title is not None:
+        ax.set_title(title)
+    
+    if show_ticks:
+        ax.tick_params(axis="both", which="major")
+    else:
+        ax.set_xticks([])
+        ax.set_yticks([])
+    
     return fig
             

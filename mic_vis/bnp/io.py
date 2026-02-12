@@ -2,6 +2,49 @@ import numpy as np
 import h5py
 from typing import Tuple, List, Union
 import os
+import collections
+import ast
+
+
+def load_logs(folder_path: str):
+    """
+    Load logs from a folder.
+    
+    This function reads log files from a folder and returns a dictionary of log data.
+    
+    Parameters
+    ----------
+    folder_path : str
+        Path to the folder containing log files.
+    
+    Returns
+    -------
+    dict
+        A dictionary containing log data.
+    """
+    
+    files = os.listdir(folder_path)
+    log_files = [f for f in files if f.endswith('.log')]
+    
+    log_data = collections.defaultdict(list)
+    for log_file in log_files:
+        scan_number = log_file.replace('.log', '')
+        log_data['scan_number'].append(scan_number)
+        with open(os.path.join(folder_path, log_file), 'r') as f:
+            for i, line in enumerate(f):
+                if i == 3:
+                     # Parse the dict after the timestamp (format: "YYYY-MM-DD HH:MM:SS: dict_str")
+                    try:
+                        parts = line.split(': ', 1)
+                        if len(parts) > 1:
+                            scan_params = ast.literal_eval(parts[1].strip())
+                            for key, value in scan_params.items():
+                                if key != 'id' and key != 'status':
+                                    log_data[key].append(value)
+                    except (ValueError, SyntaxError) as e:
+                        print(f"Error parsing log file {log_file}: {e}")
+    
+    return log_data
 
 
 def load_xrf_h5_file(file_path: str, fit_type: str = 'NNLS') -> Tuple[np.ndarray, List[str], float, float]:
