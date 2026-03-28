@@ -1,9 +1,0 @@
-# IPython log file
-
-# Thu, 26 Mar 2026 15:16:48
-RE(fly2d_scanrecord(width = 20, stepsize_x = 0.5, height = 5, stepsize_y = 1, x_center = -700, y_center=-2000, dwell_ms=30))
-# Thu, 26 Mar 2026 15:17:20
-scanrecord.inner.number_points.value
-#[Out]# 41
-# Thu, 26 Mar 2026 15:18:10
-exit()

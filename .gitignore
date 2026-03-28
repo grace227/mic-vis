@@ -124,3 +124,4 @@ dmypy.json
 
 # Login / session logs (local, do not track)
 .loglogin
+.logs/

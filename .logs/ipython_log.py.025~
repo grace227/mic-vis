@@ -1,8 +1,0 @@
-# IPython log file
-
-# Thu, 26 Mar 2026 14:55:50
-from bnp.utils.fly import setup_detectors_and_fileio
-# Thu, 26 Mar 2026 14:55:53
-RE(setup_detectors_and_fileio([xmap]))
-# Thu, 26 Mar 2026 14:56:29
-exit()

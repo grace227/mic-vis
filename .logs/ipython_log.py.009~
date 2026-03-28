@@ -1,6 +1,0 @@
-# IPython log file
-
-# Thu, 26 Mar 2026 16:22:55
-RE(coarse_fine_scanrecord(theta=-20, x_center=367.17, y_center=-1101.5, sample_z=631.40, width=75, stepsize_x=1, height = 4, stepsize_y=1, elm='Ca', xmap_on=True, xp3_on=False, dwell_ms=25, width_fine=15, stepsize_x_fine=0.5, height_fine=7, stepsize_y_fine=0.5, dwell_ms_fine=25))
-# Thu, 26 Mar 2026 16:25:41
-exit()
