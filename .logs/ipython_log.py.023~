@@ -1,0 +1,29 @@
+# IPython log file
+
+# Thu, 26 Mar 2026 15:03:31
+from bnp.utils.fly import setup_detectors_and_fileio
+# Thu, 26 Mar 2026 15:03:34
+RE(setup_detectors_and_fileio([xmap]))
+# Thu, 26 Mar 2026 15:03:58
+xmap.cam.buffer_size
+#[Out]# 124
+# Thu, 26 Mar 2026 15:04:26
+RE(setup_detectors_and_fileio([xmap], 41))
+# Thu, 26 Mar 2026 15:04:49
+setup_detectors_and_fileio([xmap], 41)
+# Thu, 26 Mar 2026 15:05:02
+setup_detectors_and_fileio([xmap], 125)
+# Thu, 26 Mar 2026 15:05:34
+setup_detectors_and_fileio([xmap], 41)
+# Thu, 26 Mar 2026 15:07:26
+setup_detectors_and_fileio([xmap], 41)
+# Thu, 26 Mar 2026 15:09:38
+savedata.update_next_file_name()
+# Thu, 26 Mar 2026 15:09:48
+savedata.current_file_name
+#[Out]# 'bnp_fly0030.mda'
+# Thu, 26 Mar 2026 15:12:11
+savedata.base_name
+#[Out]# EpicsSignal(read_pv='9idbBNP:saveData_baseName', name='savedata_base_name', parent='savedata', value='bnp_fly', timestamp=1773782280.59723, auto_monitor=True, string=False, write_pv='9idbBNP:saveData_baseName', limits=False, put_complete=False)
+# Thu, 26 Mar 2026 15:13:16
+exit()

@@ -1,0 +1,14 @@
+# IPython log file
+
+# Thu, 26 Mar 2026 12:24:10
+sample.x.motion.put(1)
+# Thu, 26 Mar 2026 12:26:46
+sample.x.motion.put(4)
+# Thu, 26 Mar 2026 12:26:51
+sample.x.motion.put(1)
+# Thu, 26 Mar 2026 12:29:50
+RE(scanrecord.stage2Dfly([sis3820, eiger], sample, 10, 0.2, 5, 1))
+# Thu, 26 Mar 2026 12:30:33
+RE(scanrecord.stage2Dfly([sis3820, xmap], sample, 10, 0.2, 5, 1))
+# Thu, 26 Mar 2026 12:32:28
+exit()

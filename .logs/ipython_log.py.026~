@@ -1,0 +1,75 @@
+# IPython log file
+
+# Thu, 26 Mar 2026 14:14:04
+from bnp.utils.fly import setup_detectors_and_fileio
+# Thu, 26 Mar 2026 14:14:08
+RE(setup_detectors_and_fileio([xmap]))
+# Thu, 26 Mar 2026 14:15:06
+xmap.fileplugin.delimiter = 'BNP"
+# Thu, 26 Mar 2026 14:15:10
+xmap.fileplugin.delimiter = 'BNP'
+# Thu, 26 Mar 2026 14:15:34
+RE(setup_detectors_and_fileio([xmap]))
+# Thu, 26 Mar 2026 14:16:32
+xmap._staged
+#[Out]# <Staged.partially: 'partially'>
+# Thu, 26 Mar 2026 14:16:40
+xmap.cam._staged
+#[Out]# <Staged.no: 'no'>
+# Thu, 26 Mar 2026 14:16:46
+xmap.fileplugin._staged
+#[Out]# <Staged.no: 'no'>
+# Thu, 26 Mar 2026 14:17:06
+xmap._staged
+#[Out]# <Staged.partially: 'partially'>
+# Thu, 26 Mar 2026 14:19:23
+def show_staged_info(dev):
+    print(f"{dev.name}: staged={dev._staged}")
+    print("stage_sigs:")
+    for k, v in getattr(dev, "stage_sigs", {}).items():
+        print(f"  {k} -> {v}")
+
+    print("original values saved:")
+    for sig, val in getattr(dev, "_original_vals", {}).items():
+        pv = getattr(sig, "pvname", "no-pv")
+        print(f"  {sig.name} ({pv}) original={val}")
+
+    print("children:")
+    for name in getattr(dev, "component_names", []):
+        child = getattr(dev, name)
+        if hasattr(child, "_staged"):
+            print(f"  {name}: {child._staged}")
+
+# Thu, 26 Mar 2026 14:19:29
+show_staged_info(xmap)
+# Thu, 26 Mar 2026 14:52:45
+type(xmap)
+ type(xmap).mro()
+ type(xmap).stage
+# Thu, 26 Mar 2026 14:52:54
+type(xmap)
+type(xmap).mro()
+type(xmap).stage
+#[Out]# <function ophyd.device.BlueskyInterface.stage(self) -> 'List[object]'>
+# Thu, 26 Mar 2026 14:53:12
+from ophyd.device import Staged
+  print("xmap", xmap._staged)
+  print("original_vals", getattr(xmap, "_original_vals", None))
+  print("subdevices", [(n, getattr(getattr(xmap, n), "_staged", None)) for n in xmap.component_names])
+# Thu, 26 Mar 2026 14:53:23
+from ophyd.device import Staged
+print("xmap", xmap._staged)
+print("original_vals", getattr(xmap, "_original_vals", None))
+print("subdevices", [(n, getattr(getattr(xmap, n), "_staged", None)) for n in xmap.component_names])
+# Thu, 26 Mar 2026 14:54:22
+xmap.unstage()
+# Thu, 26 Mar 2026 14:54:29
+xmap._staged
+#[Out]# <Staged.partially: 'partially'>
+# Thu, 26 Mar 2026 14:54:53
+import inspect
+print(type(xmap))
+print(type(xmap).stage)
+print(inspect.getsource(type(xmap).stage))
+# Thu, 26 Mar 2026 14:55:05
+exit()

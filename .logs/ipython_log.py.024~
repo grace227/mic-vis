@@ -1,0 +1,24 @@
+# IPython log file
+
+# Thu, 26 Mar 2026 14:57:53
+xmap.fileplugin.generate_det_filepath()
+#[Out]# '/net/micdata/data1/bnp/2025-3/guidev/mda/../flyXRF'
+# Thu, 26 Mar 2026 14:58:02
+f = xmap.fileplugin.generate_det_filepath()
+# Thu, 26 Mar 2026 14:58:03
+f
+#[Out]# '/net/micdata/data1/bnp/2025-3/guidev/mda/../flyXRF'
+# Thu, 26 Mar 2026 14:58:19
+get_ipython().run_line_magic('pinfo', 'xmap.fileplugin.sync_file_path')
+# Thu, 26 Mar 2026 14:58:28
+xmap.fileplugin.sync_file_path(f)
+#[Out]# 'W:/BNP/2026-1/Jakes/flyXRF\\bnp/2025-3/guidev/mda/../flyXRF'
+# Thu, 26 Mar 2026 14:59:20
+xmap.fileplugin.sync_file_path(f)
+#[Out]# 'W:/bnp/2025-3/guidev/mda/../flyXRF'
+# Thu, 26 Mar 2026 14:59:30
+from bnp.utils.fly import setup_detectors_and_fileio
+# Thu, 26 Mar 2026 14:59:35
+RE(setup_detectors_and_fileio([xmap]))
+# Thu, 26 Mar 2026 15:02:50
+exit()

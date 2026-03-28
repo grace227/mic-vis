@@ -1,0 +1,11 @@
+# IPython log file
+
+# Thu, 26 Mar 2026 15:28:12
+RE(fly2d_scanrecord(width = 20, stepsize_x = 0.5, height = 5, stepsize_y = 1, x_center = -700, y_center=-2000, dwell_ms=30))
+# Thu, 26 Mar 2026 15:29:24
+RE.stop()
+#[Out]# ('b7f69c02-e1f1-4d3e-8356-5fe67c2eb6bf',)
+# Thu, 26 Mar 2026 15:29:44
+RE(fly2d_scanrecord(width = 20, stepsize_x = 0.5, height = 5, stepsize_y = 1, x_center = -500, y_center=-1800, dwell_ms=30))
+# Thu, 26 Mar 2026 15:30:31
+exit()

@@ -1,0 +1,25 @@
+# IPython log file
+
+# Thu, 26 Mar 2026 16:05:27
+RE(coarse_fine_scanrecord(theta=-20, x_center=367.17, y_center=-1101.5, sample_z=631.40, width=75, stepsize_x=1, height = 4, stepsize_y=1, elm='Ca', xmap_on=True, xp3_on=False, dwell_ms=25, width_fine=15, stepsize_x_fine=0.5, height_fine=7, stepsize_y_fine=0.5, dwell_ms_fine=25))
+# Thu, 26 Mar 2026 16:07:02
+RE(coarse_fine_scanrecord(theta=-20, x_center=367.17, y_center=-1101.5, sample_z=631.40, width=75, stepsize_x=1, height = 4, stepsize_y=1, elm='Ca', xmap_on=True, xp3_on=False, dwell_ms=25, width_fine=15, stepsize_x_fine=0.5, height_fine=7, stepsize_y_fine=0.5, dwell_ms_fine=25))
+# Thu, 26 Mar 2026 16:07:43
+RE.stop()
+#[Out]# ('a5d1b87d-7e7f-4150-86b3-cda44e0b324d',)
+# Thu, 26 Mar 2026 16:08:18
+RE(coarse_fine_scanrecord(theta=-20, x_center=367.17, y_center=-1101.5, sample_z=631.40, width=75, stepsize_x=1, height = 4, stepsize_y=1, elm='Ca', xmap_on=True, xp3_on=False, dwell_ms=25, width_fine=15, stepsize_x_fine=0.5, height_fine=7, stepsize_y_fine=0.5, dwell_ms_fine=25))
+# Thu, 26 Mar 2026 16:10:04
+savedata.file_system
+#[Out]# EpicsSignal(read_pv='9idbBNP:saveData_fileSystem', name='savedata_file_system', parent='savedata', value='//micdata/data1/bnp/2026-1', timestamp=1774555614.808016, auto_monitor=True, string=False, write_pv='9idbBNP:saveData_fileSystem', limits=False, put_complete=False)
+# Thu, 26 Mar 2026 16:10:07
+savedata.file_system.get()
+#[Out]# '//micdata/data1/bnp/2026-1'
+# Thu, 26 Mar 2026 16:10:15
+savedata.subdirectory
+#[Out]# EpicsSignal(read_pv='9idbBNP:saveData_subDir', name='savedata_subdirectory', parent='savedata', value='blueskydev/mda', timestamp=1774555624.868016, auto_monitor=True, string=False, write_pv='9idbBNP:saveData_subDir', limits=False, put_complete=False)
+# Thu, 26 Mar 2026 16:10:19
+savedata.subdirectory.get()
+#[Out]# 'blueskydev/mda'
+# Thu, 26 Mar 2026 16:16:44
+exit()

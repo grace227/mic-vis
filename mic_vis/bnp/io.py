@@ -1,9 +1,13 @@
 import numpy as np
 import h5py
-from typing import Tuple, List, Union
+from pathlib import Path
+from typing import Any, Mapping, Tuple, List, Union
 import os
 import collections
 import ast
+
+from mic_vis.common.load_xrf import load_h5_file
+from .mda import get_mda_positioners
 
 
 def load_logs(folder_path: str):
@@ -162,3 +166,85 @@ def load_xrf_h5_file(file_path: str, fit_type: str = 'NNLS') -> Tuple[np.ndarray
     except Exception as e:
         raise RuntimeError(f"Unexpected error while loading XRF data: {e}")
 
+
+BNP_SAMPLE_Z_PVS = ("9idbTAU:SM:SZ:ActPos",)
+BNP_SAMPLE_THETA_PVS = ("9idbTAU:SM:ST:ActPos",)
+
+
+def _decode_string_list(values: np.ndarray) -> list[str]:
+    return [str(item) for item in values.astype(str).tolist()]
+
+
+def _coerce_float(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _extract_extra_pv_values(file_handle: h5py.File) -> dict[str, str]:
+    if "MAPS/extra_pvs" not in file_handle:
+        return {}
+
+    extra_pvs = file_handle["MAPS/extra_pvs"][:]
+    if getattr(extra_pvs, "shape", ())[:1] < (2,):
+        return {}
+    pv_names = _decode_string_list(extra_pvs[0])
+    pv_values = _decode_string_list(extra_pvs[1])
+    return {name: value for name, value in zip(pv_names, pv_values)}
+
+
+def _find_pv_float(pv_values: Mapping[str, str], candidates: tuple[str, ...]) -> float | None:
+    for candidate in candidates:
+        if candidate in pv_values:
+            value = _coerce_float(pv_values[candidate])
+            if value is not None:
+                return value
+    for pv_name, pv_value in pv_values.items():
+        if any(pv_name.endswith(candidate) for candidate in candidates):
+            value = _coerce_float(pv_value)
+            if value is not None:
+                return value
+    return None
+
+
+def _resolve_bnp_mda_path(file_path: str) -> Path:
+    h5_path = Path(file_path)
+    parent = h5_path.parent
+    if parent.name == "img.dat":
+        return parent.parent / "mda" / h5_path.stem
+    return h5_path.with_suffix("")
+
+
+def load_bnp_h5_file(file_path: str, fit_type: str = "ROI") -> dict[str, Any]:
+    data = dict(load_h5_file(file_path, fit_type))
+    sample_z = None
+    sample_theta = None
+
+    with h5py.File(file_path, "r") as file_handle:
+        pv_values = _extract_extra_pv_values(file_handle)
+        if pv_values:
+            sample_z = _find_pv_float(pv_values, BNP_SAMPLE_Z_PVS)
+            sample_theta = _find_pv_float(pv_values, BNP_SAMPLE_THETA_PVS)
+
+    if sample_z is None or sample_theta is None:
+        mda_path = _resolve_bnp_mda_path(file_path)
+        if mda_path.exists():
+            try:
+                positioners = get_mda_positioners(
+                    str(mda_path),
+                    get_z=True,
+                    samz_pv=BNP_SAMPLE_Z_PVS[0],
+                    get_theta=True,
+                    theta_pv=BNP_SAMPLE_THETA_PVS[0],
+                )
+            except Exception:
+                positioners = {}
+            if sample_z is None:
+                sample_z = _coerce_float(positioners.get("z_pos"))
+            if sample_theta is None:
+                sample_theta = _coerce_float(positioners.get("theta_pos"))
+
+    data["sample_z"] = sample_z
+    data["sample_theta"] = sample_theta
+    return data
