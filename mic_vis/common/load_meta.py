@@ -1,40 +1,76 @@
-import os
+"""Metadata loaders for Bluesky-produced files."""
+
+from __future__ import annotations
+
+import ast
+import json
+from pathlib import Path
+from typing import Any, Mapping
+
 import h5py
-import pandas as pd
-import collections
 import yaml
 
-def load_bluesky_nexus_2idd(bluesky_dir: str, export_csv: bool = False) -> pd.DataFrame:
-    """
-    Load the bluesky nexus file and return a pandas dataframe.
-    """
 
-    if not os.path.exists(bluesky_dir):
-        raise FileNotFoundError(f"Bluesky directory {bluesky_dir} not found")
-    
-    files = os.listdir(bluesky_dir)
-    meta_dict = collections.defaultdict(list)
-    
-    for fn in files:
-        if fn.endswith('.h5'):
+DEFAULT_PLAN_ARGS_PATH = "entry/instrument/bluesky/metadata/plan_args"
+
+
+def load_bluesky_meta(path: str | Path) -> Mapping[str, Any]:
+    """Load Bluesky ``plan_args`` metadata from an HDF5 file."""
+
+    file_path = Path(path)
+    with h5py.File(file_path, "r") as handle:
+        node: Any = handle
+        for part in DEFAULT_PLAN_ARGS_PATH.split("/"):
+            node = node[part]
+
+        if isinstance(node, h5py.Group):
+            return {
+                key: _decode_h5_value(value[()])
+                for key, value in node.items()
+                if isinstance(value, h5py.Dataset)
+            }
+        if isinstance(node, h5py.Dataset):
+            decoded = _decode_h5_value(node[()])
+            if isinstance(decoded, Mapping):
+                return decoded
+            if isinstance(decoded, str):
+                parsed = _parse_text_mapping(decoded)
+                if isinstance(parsed, Mapping):
+                    return parsed
+            raise ValueError(f"{file_path.name} plan_args is not a mapping")
+        raise ValueError(f"{file_path.name} does not contain a readable plan_args node")
+
+
+def _decode_h5_value(value: Any) -> Any:
+    if hasattr(value, "shape") and getattr(value, "shape", None) == () and hasattr(value, "item"):
+        try:
+            value = value.item()
+        except Exception:
+            pass
+    if isinstance(value, bytes):
+        value = value.decode("utf-8", errors="replace")
+    if isinstance(value, str):
+        stripped = value.strip()
+        for parser in (json.loads, ast.literal_eval):
             try:
-                with h5py.File(os.path.join(bluesky_dir, fn), 'r') as f:
-                    meta_dict['scan_number'].append(fn.replace('_run.h5', ''))
-                    meta_dict['start_time'].append(f['entry/start_time'][()].decode('utf-8'))
-                    meta_dict['plan_name'] = f['entry/plan_name'][()].decode('utf-8')
-                    m = f['entry/instrument/bluesky/metadata/plan_args'][()].decode('utf-8')
-                    meta_dict['plan_args'].append(m)
-                    m_dict = yaml.safe_load(m)
-                    meta_dict['samplename'].append(m_dict['samplename'])
-                    meta_dict['user_comments'].append(m_dict['user_comments'])
-                    # for k, v in m_dict.items():
-                    #     meta_dict[k].append(v)
-            except Exception as e:
-                print(f"Error loading bluesky nexus file {fn}: {e}")
+                parsed = parser(stripped)
+            except Exception:
                 continue
-    
-    df = pd.DataFrame(meta_dict)
-    if export_csv:
-        parent_dir = os.path.dirname(bluesky_dir)
-        df.to_csv(os.path.join(parent_dir, 'bluesky_meta.csv'), index=False)
-    return df
+            if isinstance(parsed, Mapping):
+                return parsed
+        return stripped
+    return value
+
+
+def _parse_text_mapping(value: str) -> Mapping[str, Any] | None:
+    stripped = value.strip()
+    if not stripped:
+        return {}
+    for parser in (yaml.safe_load, json.loads, ast.literal_eval):
+        try:
+            parsed = parser(stripped)
+        except Exception:
+            continue
+        if isinstance(parsed, Mapping):
+            return parsed
+    return None
