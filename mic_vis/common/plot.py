@@ -15,7 +15,8 @@ def addColorBar(fig, img, ax):
 # Function to add a horizontal error bar scale bar to plots
 def add_scale_bar(ax, scale_length_um, pixel_size_um, 
                   position='bottom-right', color='white', 
-                  linewidth=2, fontsize=10, label_offset=5):
+                  linewidth=2, fontsize=10, label_offset=5,
+                  x_offset_frac=None, y_offset_frac=None):
     """
     Add a horizontal error bar scale bar to an image plot.
     
@@ -37,6 +38,12 @@ def add_scale_bar(ax, scale_length_um, pixel_size_um,
         Font size for the label
     label_offset : float
         Offset in pixels for the label text above the scale bar
+    x_offset_frac : float | None
+        Fractional horizontal offset from the axis edge. If None, use the
+        built-in default for the selected position.
+    y_offset_frac : float | None
+        Fractional vertical offset from the axis edge. If None, use the
+        built-in default for the selected position.
     """
     # Calculate scale bar length in pixels
     scale_length_pixels = scale_length_um / pixel_size_um
@@ -46,24 +53,29 @@ def add_scale_bar(ax, scale_length_um, pixel_size_um,
     ylim = ax.get_ylim()
     x_range = xlim[1] - xlim[0]
     y_range = ylim[1] - ylim[0]
+    if x_offset_frac is None:
+        x_offset_frac = 0.15
+    if y_offset_frac is None:
+        y_offset_frac = 0.1
     
     # Determine position based on input
     if position == 'bottom-right':
-        x_start = xlim[1] - x_range * 0.15 - scale_length_pixels
-        x_end = xlim[1] - x_range * 0.15
-        y_pos = ylim[0] + y_range * 0.1
+        x_start = xlim[1] - x_range * x_offset_frac - scale_length_pixels
+        x_end = xlim[1] - x_range * x_offset_frac
+        y_pos = ylim[0] + y_range * y_offset_frac
     elif position == 'bottom-left':
-        x_start = xlim[0] + x_range * 0.06
-        x_end = xlim[0] + x_range * 0.06 + scale_length_pixels
-        y_pos = ylim[0] + y_range * 0.1
+        left_offset = x_offset_frac if x_offset_frac is not None else 0.06
+        x_start = xlim[0] + x_range * left_offset
+        x_end = xlim[0] + x_range * left_offset + scale_length_pixels
+        y_pos = ylim[0] + y_range * y_offset_frac
     elif position == 'top-right':
-        x_start = xlim[1] - x_range * 0.15 - scale_length_pixels
-        x_end = xlim[1] - x_range * 0.15
-        y_pos = ylim[1] - y_range * 0.1
+        x_start = xlim[1] - x_range * x_offset_frac - scale_length_pixels
+        x_end = xlim[1] - x_range * x_offset_frac
+        y_pos = ylim[1] - y_range * y_offset_frac
     elif position == 'top-left':
-        x_start = xlim[0] + x_range * 0.15
-        x_end = xlim[0] + x_range * 0.15 + scale_length_pixels
-        y_pos = ylim[1] - y_range * 0.1
+        x_start = xlim[0] + x_range * x_offset_frac
+        x_end = xlim[0] + x_range * x_offset_frac + scale_length_pixels
+        y_pos = ylim[1] - y_range * y_offset_frac
     else:
         raise ValueError("position must be 'bottom-right', 'bottom-left', 'top-right', or 'top-left'")
     

@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mic_vis.s2idd.mda import get_roi_from_mda
 import logging
+import collections
 
 
 logger = logging.getLogger(__name__)
@@ -162,5 +163,3 @@ def load_xrf(img_h5_path, fit_type=["NNLS", "ROI"], fsizelim=1e3) -> dict:
     else:
         print(f"The XRF h5 file {img_h5_path} not found")
         return None
-
-

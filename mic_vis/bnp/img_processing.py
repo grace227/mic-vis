@@ -6,7 +6,7 @@ from pathlib import Path
 
 import h5py
 import matplotlib
-matplotlib.use("Agg")
+# matplotlib.use("Agg")
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -105,6 +105,98 @@ def plot_bbox(elmmap: np.ndarray, box: tuple[int, int, int, int], x_pos: np.ndar
     ax.pcolor(x_pos, y_pos, elmmap, cmap="gray", shading="auto")
     ax.add_patch(rect)
     return fig
+
+
+def _build_overlay_rgba(
+    data: np.ndarray,
+    *,
+    channel_index: int,
+    vmax: float | None,
+    alpha: float,
+) -> np.ndarray:
+    arr = np.asarray(data, dtype=float)
+    rgba = np.zeros(arr.shape + (4,), dtype=float)
+    if vmax is None or vmax <= 0:
+        return rgba
+
+    scaled = np.clip(arr / vmax, 0, 1)
+    rgba[..., channel_index] = scaled
+    rgba[..., 3] = alpha * scaled
+    return rgba
+
+
+def plot_registration_overlay(
+    moving: np.ndarray,
+    reference: np.ndarray,
+    *,
+    fig: plt.Figure | None = None,
+    ax: plt.Axes | None = None,
+    title: str | None = None,
+    vmax: float | None = None,
+    percentile: float = 99.0,
+    moving_color: str = "blue",
+    reference_color: str = "red",
+    alpha: float = 0.45,
+    show_ticks: bool = False,
+) -> tuple[plt.Figure, plt.Axes]:
+    """Plot a false-color overlay of moving and reference maps.
+
+    Parameters
+    ----------
+    moving, reference:
+        2D arrays with the same shape.
+    fig, ax:
+        Optional existing matplotlib figure/axes. If ``ax`` is omitted, a new
+        figure and axes are created unless ``fig`` is provided, in which case
+        ``fig.gca()`` is used.
+    vmax:
+        Optional intensity cap used to scale both overlays. If omitted, a joint
+        percentile across both arrays is used.
+    """
+
+    moving_arr = np.asarray(moving, dtype=float)
+    reference_arr = np.asarray(reference, dtype=float)
+    if moving_arr.shape != reference_arr.shape:
+        raise ValueError(
+            f"moving and reference must have the same shape, got {moving_arr.shape} and {reference_arr.shape}"
+        )
+
+    finite_vals = np.concatenate(
+        [
+            moving_arr[np.isfinite(moving_arr)],
+            reference_arr[np.isfinite(reference_arr)],
+        ]
+    )
+    if vmax is None:
+        vmax = float(np.nanpercentile(finite_vals, percentile)) if finite_vals.size else None
+
+    color_to_channel = {"red": 0, "green": 1, "blue": 2}
+    try:
+        moving_channel = color_to_channel[moving_color.lower()]
+        reference_channel = color_to_channel[reference_color.lower()]
+    except KeyError as exc:
+        raise ValueError("moving_color/reference_color must be one of: red, green, blue") from exc
+
+    moving_rgba = _build_overlay_rgba(moving_arr, channel_index=moving_channel, vmax=vmax, alpha=alpha)
+    reference_rgba = _build_overlay_rgba(reference_arr, channel_index=reference_channel, vmax=vmax, alpha=alpha)
+
+    if ax is None:
+        if fig is None:
+            fig, ax = plt.subplots()
+        else:
+            ax = fig.gca()
+    elif fig is None:
+        fig = ax.figure
+
+    ax.imshow(reference_rgba)
+    ax.imshow(moving_rgba)
+    if title is not None:
+        ax.set_title(title)
+    if not show_ticks:
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+    return fig, ax
 
 
 def kmean_analysis(
