@@ -51,70 +51,79 @@ def load_logs(folder_path: str):
     return log_data
 
 
-def load_xrf_h5_file(file_path: str, fit_type: str = 'NNLS') -> Tuple[np.ndarray, List[str], float, float]:
+def load_xrf_h5_file(
+    file_path: str,
+    fit_type: str = 'NNLS',
+    quant_norm: str = 'US_IC',
+    include_quant: bool = True,
+    strict_quant: bool = False,
+) -> dict[str, Any]:
     """
-    Load XRF data from an HDF5 file.
-    
-    This function reads X-ray fluorescence (XRF) data from an HDF5 file, including
-    channel data, channel names, and scaler data for upstream and downstream
-    ion chambers.
-    
+    Load BNP XRF data from an HDF5 file.
+
+    This function reads fitted or ROI XRF maps, channel names, scaler maps,
+    scan axes, spectra, and optionally the MAPS quantification calibration
+    table for a requested scaler normalization.
+
     Parameters
     ----------
     file_path : str
         Path to the HDF5 file containing XRF data.
     fit_type : str, default='NNLS'
-        Type of fit analysis to load. Must match a key in the 
-        'MAPS/XRF_Analyzed/' group of the HDF5 file.
-    
+        Type of fit analysis to load. Must match a key in
+        'MAPS/XRF_Analyzed/'.
+    quant_norm : str, default='US_IC'
+        Scaler-normalized calibration curve to load when available, for
+        example 'US_IC', 'DS_IC', 'US_FM', or 'SR_Current'.
+    include_quant : bool, default=True
+        If True, try to load the quantification calibration table. Files that
+        do not have MAPS quantification fields still load unless strict_quant
+        is True.
+    strict_quant : bool, default=False
+        If True, raise a KeyError when the requested calibration table is
+        missing. If False, return quant_data=None and quant_names=[].
+
     Returns
     -------
-    Tuple[np.ndarray, List[str], float, float]
-        A tuple containing:
-        - ch_data : np.ndarray
-            Channel data as counts per second with shape (n_channels, n_points)
-        - ch_names : List[str]
-            List of channel names corresponding to the data
-        - us_ic : float
-            Upstream ion chamber value
-        - ds_ic : float
-            Downstream ion chamber value
-    
-    Raises
-    ------
-    FileNotFoundError
-        If the specified file_path does not exist.
-    KeyError
-        If the required HDF5 groups or datasets are not found in the file.
-    ValueError
-        If the fit_type is not available in the file.
-    
-    Examples
-    --------
-    >>> ch_data, ch_names, us_ic, ds_ic, x_val, y_val = load_xrf_h5_file('data.bnp_fly0001.mda.h5')
-    >>> print(f"Loaded {len(ch_names)} channels")
-    >>> print(f"Upstream IC: {us_ic}")
+    dict[str, Any]
+        Dictionary containing:
+        - ch_data: channel maps in counts per second, shape
+          (n_channels, ny, nx)
+        - ch_names: channel names corresponding to ch_data
+        - scaler_data: scaler maps
+        - scaler_names: scaler names corresponding to scaler_data
+        - us_ic: US_IC scaler map when available, otherwise None
+        - ds_ic: DS_IC scaler map when available, otherwise None
+        - x_val, y_val: scan axes
+        - energy_val, int_spec: spectrum metadata
+        - quant_data: calibration curve array when available, usually
+          rows K/L/M by calibration label
+        - quant_names: labels for quant_data columns
+        - quant_norm: requested quantification normalization
+        - quant_path: HDF5 path used for quant_data, or None
+
+    Notes
+    -----
+    For fitted BNP maps, an areal-density style calibrated map can be computed
+    with element_cps / scaler_map * calibration_factor. The calibration rows
+    are K, L, and M line families.
     """
-    
-    
-    # Validate file path exists
+
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
-    
+
     try:
         with h5py.File(file_path, 'r') as f:
-            # Check if required groups exist
             if 'MAPS' not in f:
                 raise KeyError("Required group 'MAPS' not found in HDF5 file")
-            
+
             if 'XRF_Analyzed' not in f['MAPS']:
                 raise KeyError("Required group 'MAPS/XRF_Analyzed' not found in HDF5 file")
-            
+
             if fit_type not in f['MAPS']['XRF_Analyzed']:
                 available_fits = list(f['MAPS']['XRF_Analyzed'].keys())
                 raise ValueError(f"Fit type '{fit_type}' not found. Available types: {available_fits}")
-            
-            # Check if required datasets exist
+
             required_paths = [
                 f"MAPS/XRF_Analyzed/{fit_type}/Counts_Per_Sec",
                 f"MAPS/XRF_Analyzed/{fit_type}/Channel_Names",
@@ -123,14 +132,13 @@ def load_xrf_h5_file(file_path: str, fit_type: str = 'NNLS') -> Tuple[np.ndarray
                 'MAPS/x_axis',
                 'MAPS/y_axis',
                 'MAPS/energy',
-                'MAPS/int_spec'
+                'MAPS/int_spec',
             ]
-            
-            for path in required_paths:
-                if path not in f:
-                    raise KeyError(f"Required dataset '{path}' not found in HDF5 file")
-            
-            # Load data
+
+            for h5_path in required_paths:
+                if h5_path not in f:
+                    raise KeyError(f"Required dataset '{h5_path}' not found in HDF5 file")
+
             ch_data = f[f"MAPS/XRF_Analyzed/{fit_type}/Counts_Per_Sec"][:]
             ch_names = f[f"MAPS/XRF_Analyzed/{fit_type}/Channel_Names"][:].astype(str).tolist()
             scaler_data = f['MAPS/scalers'][:]
@@ -139,32 +147,57 @@ def load_xrf_h5_file(file_path: str, fit_type: str = 'NNLS') -> Tuple[np.ndarray
             y_val = f['MAPS/y_axis'][:]
             energy_val = f['MAPS/energy'][:]
             int_spec = f['MAPS/int_spec'][:]
-            
-            # Check if required scaler names exist
-            if 'US_IC' not in scaler_names:
-                raise KeyError("Required scaler 'US_IC' not found in scaler_names")
-            if 'DS_IC' not in scaler_names:
-                raise KeyError("Required scaler 'DS_IC' not found in scaler_names")
-            
-            us_ic = scaler_data[scaler_names.index('US_IC')]
-            ds_ic = scaler_data[scaler_names.index('DS_IC')]
-            
-            dict_label = ["ch_data", "ch_names", "scaler_data", "scaler_names", 
-                          "x_val", "y_val", "energy_val", "int_spec"]
-            h5data = {}
-            for l in dict_label:
-                if l not in locals():
-                    raise KeyError(f"Required dataset '{l}' not found in HDF5 file")
+
+            us_ic = scaler_data[scaler_names.index('US_IC')] if 'US_IC' in scaler_names else None
+            ds_ic = scaler_data[scaler_names.index('DS_IC')] if 'DS_IC' in scaler_names else None
+
+            quant_data = None
+            quant_names = []
+            quant_path = None
+            quant_label_path = None
+            if include_quant:
+                quant_path = f'MAPS/Quantification/Calibration/{fit_type}/Calibration_Curve_{quant_norm}'
+                quant_label_path = f'MAPS/Quantification/Calibration/{fit_type}/Calibration_Curve_Labels'
+                if quant_path in f and quant_label_path in f:
+                    quant_data = f[quant_path][:]
+                    quant_labels = f[quant_label_path]
+                    if quant_labels.ndim == 2:
+                        quant_names = quant_labels[0, :].astype(str).tolist()
+                    else:
+                        quant_names = quant_labels[:].astype(str).tolist()
+                elif strict_quant:
+                    raise KeyError(
+                        f"Requested quantification datasets not found: "
+                        f"'{quant_path}' and/or '{quant_label_path}'"
+                    )
                 else:
-                    h5data[l] = locals()[l]
-                    
-            return h5data
-            
-            
-    except h5py.HDF5Error as e:
-        raise ValueError(f"Error reading HDF5 file: {e}")
+                    quant_path = None
+                    quant_label_path = None
+
+            return {
+                'ch_data': ch_data,
+                'ch_names': ch_names,
+                'scaler_data': scaler_data,
+                'scaler_names': scaler_names,
+                'us_ic': us_ic,
+                'ds_ic': ds_ic,
+                'x_val': x_val,
+                'y_val': y_val,
+                'energy_val': energy_val,
+                'int_spec': int_spec,
+                'quant_data': quant_data,
+                'quant_names': quant_names,
+                'quant_norm': quant_norm,
+                'quant_path': quant_path,
+                'quant_label_path': quant_label_path,
+            }
+
+    except (FileNotFoundError, KeyError, ValueError):
+        raise
+    except OSError as e:
+        raise ValueError(f"Error reading HDF5 file: {e}") from e
     except Exception as e:
-        raise RuntimeError(f"Unexpected error while loading XRF data: {e}")
+        raise RuntimeError(f"Unexpected error while loading XRF data: {e}") from e
 
 
 BNP_SAMPLE_Z_PVS = ("9idbTAU:SM:SZ:ActPos",)
